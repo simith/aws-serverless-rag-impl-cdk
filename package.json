@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@aws-cdk/cloud-assembly-schema": "^2.110.0",
+    "aws-cdk": "2.103"
+  }
+}
