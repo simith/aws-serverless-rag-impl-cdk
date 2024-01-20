@@ -229,29 +229,16 @@ class StreamingBotWebsocketsStack(Stack):
         bucket.add_object_created_notification(
            notification)
         
-
-        vector_collection = opensearchserverless.CfnCollection(self, "MyCfnCollection",
-        name="vectorcoll",
+        collection_name = f"vectorcoll-{config_data['deployment']['name']}".lower()
+        vector_collection = opensearchserverless.CfnCollection(self,collection_name,
+        name=collection_name,
         # the properties below are optional
         description="A vectorized collection of documents, your knowledge base",
         type="VECTORSEARCH"
         ) 
      
-        # Encryption policy is needed in order for the collection to be created
-        encPolicy = opensearchserverless.CfnSecurityPolicy(self, 'ProductSecurityPolicy',
-        name='product-collection-policy',
-        policy='{"Rules":[{"ResourceType":"collection","Resource":["collection/vectorcoll"]}],"AWSOwnedKey":true}',
-        type='encryption'
-        )
-
-        #Network policy is required so that the dashboard can be viewed!
-        netPolicy = opensearchserverless.CfnSecurityPolicy(self, 'ProductNetworkPolicy', 
-        name='product-network-policy',
-        policy='[{"Rules":[{"ResourceType":"collection","Resource":["collection/vectorcoll"]}, {"ResourceType":"dashboard","Resource":["collection/product-collection"]}],"AllowFromPublic":true}]',
-        type='network'
-        )
-        collection_name = "vectorcoll"
-
+        encryption_policy = {"Rules":[{"ResourceType":"collection","Resource":[f"collection/{collection_name}"]}],"AWSOwnedKey":True}
+        network_policy = [{"Rules":[{"ResourceType":"collection","Resource":[f"collection/{collection_name}"]}, {"ResourceType":"dashboard","Resource":["collection/product-collection"]}],"AllowFromPublic":True}]
         data_access_policy = [{
         "Rules": [
         {
@@ -267,7 +254,23 @@ class StreamingBotWebsocketsStack(Stack):
         "Principal": [lambda_vector_db_ingestion_handler_role.role_arn,lambda_ws_message_handler_role.role_arn]
         }]
 
-        dataPolicy = opensearchserverless.CfnAccessPolicy(self, f'sample-vectordb-data-policy', name=f'sample-vectordb-data-policy',
+           # Encryption policy is needed in order for the collection to be created
+        encPolicy = opensearchserverless.CfnSecurityPolicy(self, f"secpolicy",
+        name=f"SecPlcy{config_data['deployment']['name']}".lower(),
+        policy=json.dumps(encryption_policy),
+        type='encryption'
+        )
+
+        #Network policy is required so that the dashboard can be viewed!
+        netPolicy = opensearchserverless.CfnSecurityPolicy(self, f"netpolicy", 
+        name=f"NetPlcy{config_data['deployment']['name']}".lower(),
+        policy=json.dumps(network_policy),
+        type='network'
+        )
+
+        dataPolicy = opensearchserverless.CfnAccessPolicy(self, \
+                                                          f"DataPlcy-{config_data['deployment']['name']}".lower(),\
+                                                          name=f"DataPlcy{config_data['deployment']['name']}".lower(),
                     type='data',
                     policy=json.dumps(data_access_policy))
 
