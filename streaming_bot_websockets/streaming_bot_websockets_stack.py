@@ -45,17 +45,17 @@ class StreamingBotWebsocketsStack(Stack):
         
         '''An Eventbridge bus for custom events'''
         messaging_app_event_bus = events.EventBus(self, "MessagingAppEventBus",
-            event_bus_name="MessagingAppEventBus"
+            event_bus_name=f"MessagingAppEventBus{config_data['deployment']['name']}"
         )
         '''Create a Web socket API Gateway'''
-        web_socket_api = apigwv2.WebSocketApi(self, "1bzWebscoketDemoApi")
+        web_socket_api = apigwv2.WebSocketApi(self, f"1bzWebscoketDemoApi{config_data['deployment']['name']}")
         web_socket_api_stage = apigwv2.WebSocketStage(self, "1bzWebscoketDemoApiStage",
             web_socket_api=web_socket_api,
             stage_name="dev",
             auto_deploy=True
         )
 
-        lambda_ws_message_handler_role = iam.Role(self,"lambdaWsMsgHandlerRole", \
+        lambda_ws_message_handler_role = iam.Role(self,f"lambdaWsMsgHandlerRole", \
                                                            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'))
         
     
@@ -97,7 +97,7 @@ class StreamingBotWebsocketsStack(Stack):
         '''Web socket Message Handler'''
         lambda_ws_message_handler = _lambda.Function(
                 self, 
-                'ws_message_handler',
+                f"ws_message_handler-{config_data['deployment']['name']}",
                 role=lambda_ws_message_handler_role,
                 runtime=_lambda.Runtime.PYTHON_3_11,
                 code=_lambda.AssetCode('streaming_bot_websockets/lambdas/ws_message_handler'),
@@ -114,7 +114,7 @@ class StreamingBotWebsocketsStack(Stack):
         '''#Create other handlers for Message analysis, billing etc. '''
         lambda_billing_message_handler = _lambda.Function(
             self, 
-            'billing_message_handler',
+            f"billing_message_handler-{config_data['deployment']['name']}",
             role=lambda_billing_message_handler_role,
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.AssetCode('streaming_bot_websockets/lambdas/billing_message_handler'),
@@ -127,7 +127,7 @@ class StreamingBotWebsocketsStack(Stack):
         lambda_sentiment_analysis_message_handler_role.add_managed_policy(AWSLambdaBasicExecutionRole)
         lambda_sentiment_analysis_message_handler = _lambda.Function(
             self, 
-            'sentiment_analysis_message_handler',
+            f"sentiment_analysis_message_handler-{config_data['deployment']['name']}",
             role = lambda_sentiment_analysis_message_handler_role,
             runtime=_lambda.Runtime.PYTHON_3_11,
             code=_lambda.AssetCode('streaming_bot_websockets/lambdas/sentiment_analysis_message_handler'),
@@ -210,7 +210,7 @@ class StreamingBotWebsocketsStack(Stack):
         lambda_vector_db_ingestion_handler_role.add_managed_policy(AWSLambdaBasicExecutionRole)
         lambda_vector_db_ingestion_handler = _lambda.Function(
                 self, 
-                'vector_db_ingestion_handler',
+                f"vector_db_ingestion_handler-{config_data['deployment']['name']}",
                 runtime=_lambda.Runtime.PYTHON_3_11,
                 role=lambda_vector_db_ingestion_handler_role,
                 code=_lambda.AssetCode('streaming_bot_websockets/lambdas/vectordb_ingestion_handler'),

@@ -106,7 +106,7 @@ def lambda_handler(event, context):
                 "query_with_prompt": query_with_context
             }
             #Customer first, logging later
-            send_message(ws_client,connection_id,json.dumps(logged_evt))
+            send_message(ws_client,connection_id,json.dumps(event))
             logged_evt = log_to_db(pk=pk_str, \
                                    sk=sk_str,\
                                    table_name=events_table_name, \
